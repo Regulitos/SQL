@@ -29,6 +29,7 @@ CREATE TABLE Nota(
 INSERT INTO Estudiante values(null,"Alexander Fleming","154234","3003341544");
 INSERT INTO Estudiante values(null,"Manuel Elkin Patarroyo","154235","3003341575");
 INSERT INTO Estudiante values(null,"Albert Einstein","154236","3003341584");
+INSERT INTO Estudiante values(null,"Sigmund Freud","132178","3003347845");
 
 INSERT INTO Materia values(null,"Musica",2);
 INSERT INTO Materia values(null,"Fisica",7);
@@ -40,8 +41,8 @@ INSERT INTO Materia values(null,"Escritura",3);
 
 INSERT INTO Nota values(null,2,5,4.7);
 INSERT INTO Nota values(null,1,5,5.0);
-INSERT INTO Nota values(null,1,6,5.0);
-INSERT INTO Nota values(null,3,3,4.2);
+INSERT INTO Nota values(null,3,2,5.0);
+INSERT INTO Nota values(null,1,6,4.2);
 INSERT INTO Nota values(null,3,4,5.0);
 
 DROP procedure IF EXISTS uspPromedioEstudiante
@@ -79,4 +80,30 @@ BEGIN
 END $$
 DELIMITER ;
 
-CALL uspPromedioEstudiante(3);
+CALL uspPromedioEstudiante(1);
+
+SELECT e.id, e.nombre
+FROM Estudiante e
+LEFT JOIN Nota n ON e.id = n.Estudiante_id
+WHERE n.id IS NULL;
+
+SELECT e.nombre AS `Nombre del estudiante`, CalculatedPCA.pca AS `Mejor PCA`
+FROM Estudiante e
+INNER JOIN (
+    SELECT Nota.Estudiante_id, SUM(Nota.Nota * Materia.creditos) / SUM(Materia.creditos) AS pca
+    FROM Nota
+    INNER JOIN Materia ON Nota.Materia_id = Materia.id
+    GROUP BY Nota.Estudiante_id
+) AS CalculatedPCA ON e.id = CalculatedPCA.Estudiante_id
+WHERE CalculatedPCA.pca = (
+    SELECT MAX(pca) 
+    FROM (
+        SELECT SUM(Nota.Nota * Materia.creditos) / SUM(Materia.creditos) AS pca
+        FROM Nota
+        INNER JOIN Materia ON Nota.Materia_id = Materia.id
+        GROUP BY Nota.Estudiante_id
+    ) AS MaxPCA
+);
+
+
+
